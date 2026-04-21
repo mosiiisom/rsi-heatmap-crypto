@@ -1,0 +1,8 @@
+streamlit==1.42.0
+pandas
+numpy
+ccxt
+plotly
+python-dotenv
+requests
+requests[socks]
