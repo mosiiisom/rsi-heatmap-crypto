@@ -152,5 +152,5 @@ def update_rsi_data():
     conn.close()
 
 
-if __name__ == "__main__":
-    update_rsi_data()
+# if __name__ == "__main__":
+#     update_rsi_data()
