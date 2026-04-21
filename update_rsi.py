@@ -10,6 +10,8 @@ import os
 
 load_dotenv()
 
+# envs
+DB_PATH = os.getenv("DB_PATH", "data/rsi_data.db")
 DEFAULT_RSI_INTERVAL = os.getenv("DEFAULT_RSI_INTERVAL", "1d")
 UPDATE_LIMIT = int(os.getenv("UPDATE_LIMIT", 30))
 MIN_UPDATE_INTERVAL_MINUTES = int(os.getenv("MIN_UPDATE_INTERVAL_MINUTES", 30))
@@ -26,7 +28,7 @@ if PROXY and PROXY_URL:
 
 
 def init_db():
-    conn = sqlite3.connect('data/rsi_data.db')
+    conn = sqlite3.connect(DB_PATH)
     conn.execute('''
         CREATE TABLE IF NOT EXISTS rsi_data (
             symbol TEXT PRIMARY KEY,
@@ -62,7 +64,7 @@ def should_update(last_updated_str: str) -> bool:
 
 def update_rsi_data():
     init_db()
-    conn = sqlite3.connect('data/rsi_data.db')
+    conn = sqlite3.connect(DB_PATH)
 
     coins = fetch_top_coins(limit=UPDATE_LIMIT)
     data = []
