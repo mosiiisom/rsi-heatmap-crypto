@@ -2,3 +2,4 @@ streamlit==1.42.0
 tradingview_ta
 python-dotenv
 requests[socks]
+plotly
