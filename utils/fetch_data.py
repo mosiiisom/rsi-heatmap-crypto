@@ -2,20 +2,25 @@ import requests
 import os
 from dotenv import load_dotenv
 
+from utils.envs import get_envs
+
 load_dotenv()
 
 # envs
-IGNORE_STABLE_COINS = os.getenv("IGNORE_STABLE_COINS", True).lower() == 'true'
+IGNORE_STABLE_COINS = get_envs("IGNORE_STABLE_COINS", True) == True
 
-PROXY = os.getenv("PROXY", False).lower() == 'true'
-PROXY_URL = os.getenv("PROXY_URL", None).lower()
+PROXY = get_envs("PROXY", False) == True
+PROXY_URL = get_envs("PROXY_URL", None)
 PROXY_SETTINGS = {}
+
+CMC_API_KEY = get_envs("CMC_API_KEY")
 
 if PROXY and PROXY_URL:
     PROXY_SETTINGS = {
         "http": PROXY_URL,
         "https": PROXY_URL
     }
+
 
 def fetch_top_coins(limit=10):
     try:
@@ -28,7 +33,7 @@ def fetch_top_coins(limit=10):
             },
             headers={
                 "Accepts": "application/json",
-                "X-CMC_PRO_API_KEY": os.getenv("CMC_API_KEY"),
+                "X-CMC_PRO_API_KEY": CMC_API_KEY,
             },
             proxies=PROXY_SETTINGS
         )
@@ -39,7 +44,7 @@ def fetch_top_coins(limit=10):
 
         results = []
         for coin in data['data']:
-            if IGNORE_STABLE_COINS and coin['symbol'].lower() in ['usdt', 'usdc', 'usde','usd1','dai','usdd']:
+            if IGNORE_STABLE_COINS and coin['symbol'].lower() in ['usdt', 'usdc', 'usde', 'usd1', 'dai', 'usdd']:
                 continue
 
             results.append({

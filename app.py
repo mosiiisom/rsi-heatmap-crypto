@@ -8,10 +8,11 @@ import sqlite3
 from dotenv import load_dotenv
 
 from update_rsi import update_rsi_data
+from utils.envs import get_envs
 
 load_dotenv()
 
-DB_PATH = "data/rsi_data.db"
+DB_PATH = get_envs("DB_PATH", "data/rsi_data.db")
 
 
 # check should update page data
@@ -40,17 +41,32 @@ st.set_page_config(
 
 st.title("📊 Crypto RSI Heatmap")
 
+
+@st.cache_data(ttl=1800)  # 30 minutes
+def run_update():
+    update_rsi_data()
+
+
 if should_refresh():
     with st.spinner("Updating RSI data..."):
-        update_rsi_data()
+        run_update()
+else:
+    # ensure table exists even if no update
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("SELECT 1 FROM rsi_data LIMIT 1")
+        conn.close()
+    except:
+        # table missing → create it
+        run_update()
 
-coins_limit = int(os.getenv('UPDATE_LIMIT', 10))
+coins_limit = int(get_envs('UPDATE_LIMIT', 10))
 st.markdown(f"### Real-time RSI for Top {coins_limit} Cryptocurrencies")
 
-timeframe = os.getenv("DEFAULT_RSI_INTERVAL", "1d")
+timeframe = get_envs("DEFAULT_RSI_INTERVAL", "1d")
 
 # connect to database
-conn = sqlite3.connect('data/rsi_data.db')
+conn = sqlite3.connect(DB_PATH)
 
 # show data
 try:
@@ -71,21 +87,7 @@ try:
                 return "background-color: #e74c3c; color: white;"  # strong red
 
 
-        styled_df = df.style.applymap(color_rsi, subset=['rsi'])
-
-        st.dataframe(
-            styled_df,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "symbol": st.column_config.TextColumn("Symbol"),
-                "name": st.column_config.TextColumn("Name"),
-                "rsi": st.column_config.NumberColumn("RSI", format="%.2f"),
-                "price": st.column_config.NumberColumn("Price (USD)", format="$%.4f"),
-                "change_24h": st.column_config.NumberColumn("24h Change", format="%.2f%%"),
-                "last_updated": st.column_config.DatetimeColumn("Last Updated")
-            }
-        )
+        st.data_editor(df, use_container_width=True)
 
         st.subheader("RSI Market Overview")
 
@@ -136,6 +138,7 @@ try:
         )
 
         for i, row in df.iterrows():
+
             fig.add_annotation(
                 x=row['rank'],
                 y=row['rsi'] - 3 if row['rsi_last'] > row['rsi'] else row['rsi'] + 3,  # کمی پایین‌تر از نقطه
@@ -145,7 +148,6 @@ try:
                 align="center"
             )
 
-        for i, row in df.iterrows():
             if pd.notna(row.get('rsi_last')):
                 color = "#2ecc71" if row['rsi'] > row['rsi_last'] else "#e74c3c"  # سبز = افزایش، قرمز = کاهش
 

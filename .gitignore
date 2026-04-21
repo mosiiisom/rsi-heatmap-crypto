@@ -58,3 +58,9 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# streamlit
+.streamlit/
+
+# tests
+tests.py

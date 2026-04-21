@@ -4,20 +4,23 @@ from datetime import datetime, timedelta
 import random
 
 from tradingview_ta import TA_Handler
+
+from utils.envs import get_envs
 from utils.fetch_data import fetch_top_coins
 from dotenv import load_dotenv
 import os
+import streamlit as st
 
 load_dotenv()
 
 # envs
-DB_PATH = os.getenv("DB_PATH", "data/rsi_data.db")
-DEFAULT_RSI_INTERVAL = os.getenv("DEFAULT_RSI_INTERVAL", "1d")
-UPDATE_LIMIT = int(os.getenv("UPDATE_LIMIT", 30))
-MIN_UPDATE_INTERVAL_MINUTES = int(os.getenv("MIN_UPDATE_INTERVAL_MINUTES", 30))
+DB_PATH = get_envs("DB_PATH", "data/rsi_data.db")
+DEFAULT_RSI_INTERVAL = get_envs("DEFAULT_RSI_INTERVAL", "1d")
+UPDATE_LIMIT = int(get_envs("UPDATE_LIMIT", 30))
+MIN_UPDATE_INTERVAL_MINUTES = int(get_envs("MIN_UPDATE_INTERVAL_MINUTES", 30))
 
-PROXY = os.getenv("PROXY", False).lower() == 'true'
-PROXY_URL = os.getenv("PROXY_URL", None).lower()
+PROXY = get_envs("PROXY", False) == True
+PROXY_URL = get_envs("PROXY_URL", None)
 PROXY_SETTINGS = {}
 
 if PROXY and PROXY_URL:
@@ -108,7 +111,7 @@ def update_rsi_data():
             data.append(record)
             print(f"✓ {idx:2d}/{len(coins)} - {coin['symbol']:6} | RSI: {rsi_current:6.2f} | Prev: {rsi_previous:6.2f}")
 
-            time.sleep(random.uniform(2.0, 3.5)) # avoid tradingview rate limit
+            time.sleep(random.uniform(2.0, 3.5))  # avoid tradingview rate limit
 
         except Exception as e:
             print(f"✗ Failed {coin['symbol']}: {e}")
@@ -152,7 +155,6 @@ def update_rsi_data():
         print("⚠️ No new data was updated.")
 
     conn.close()
-
 
 # if __name__ == "__main__":
 #     update_rsi_data()
