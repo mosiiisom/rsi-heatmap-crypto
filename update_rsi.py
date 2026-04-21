@@ -70,6 +70,11 @@ def update_rsi_data():
     conn = sqlite3.connect(DB_PATH)
 
     coins = fetch_top_coins(limit=UPDATE_LIMIT)
+
+    if not coins:
+        # Something bad happens to fetch coins data from CMC
+        return
+
     data = []
 
     print(f"Starting RSI update for {len(coins)} coins... (Min interval: {MIN_UPDATE_INTERVAL_MINUTES} minutes)")
